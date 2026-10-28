@@ -1,0 +1,13 @@
+# Dependências
+node_modules/
+
+# Build
+dist/
+tsconfig.tsbuildinfo
+
+# Estado local do Verdent
+.verdent/
+
+# Sistema
+Thumbs.db
+.DS_Store
