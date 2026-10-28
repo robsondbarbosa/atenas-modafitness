@@ -32,12 +32,11 @@ function UserForm({ initial, onClose, onSaved }: { initial: AppUser | null; onCl
       return;
     }
     const patch: Partial<AppUser> = { ...form };
-    if (initial) {
-      if (!patch.password) delete patch.password;
-    } else if (!patch.password || patch.password.length < 4) {
+    if (patch.password && patch.password.length < 4) {
       setErr('Informe uma senha com pelo menos 4 caracteres.');
       return;
     }
+    if (initial && !patch.password) delete patch.password;
     setSaving(true);
     setErr('');
     try {

@@ -128,14 +128,33 @@ function App() {
     items: group.items.filter((item) => canAccess(item.id, session)),
   })).filter((group) => group.items.length > 0);
 
-  const firstAllowed = nav[0]?.items[0]?.id ?? 'dashboard';
-  const current = canAccess(page, session) ? page : firstAllowed;
-
   const doLogout = () => {
     logout();
     setSession(null);
     setPage('dashboard');
   };
+
+  // Sem permissão para nenhum módulo — bloqueia em vez de cair no dashboard
+  if (nav.length === 0) {
+    return (
+      <div className='login-wrap'>
+        <div className='login-card'>
+          <img src='/atenas-logo.jpg' alt='Atenas Moda Fitness' className='login-logo' />
+          <span className='login-sub'>Sistema de Gestão</span>
+          <p style={{ color: 'var(--muted)', fontSize: '0.9rem', margin: '0 0 16px' }}>
+            {session.name}, seu usuário não tem permissão para acessar nenhum módulo do sistema. Procure o
+            administrador.
+          </p>
+          <button className='btn btn--primary login-btn' onClick={doLogout}>
+            Sair
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const firstAllowed = nav[0].items[0].id;
+  const current = canAccess(page, session) ? page : firstAllowed;
 
   return (
     <div className='app'>
