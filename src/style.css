@@ -912,6 +912,128 @@ textarea.input {
   padding: 3px 8px;
 }
 
+.cat-add {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  background: linear-gradient(180deg, var(--gold), var(--gold-deep));
+  color: var(--black);
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgb(0 0 0 / 25%);
+  transition: transform 0.12s ease;
+}
+
+.cat-add:hover {
+  transform: translateY(-2px);
+}
+
+/* ---------- Carrinho do catálogo ---------- */
+
+.cat-cart-bar {
+  position: fixed;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--black);
+  color: #fff;
+  border: 0;
+  border-radius: 999px;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 16px 36px rgb(0 0 0 / 35%);
+  z-index: 40;
+}
+
+.cat-cart-count {
+  background: var(--gold);
+  color: var(--black);
+  border-radius: 999px;
+  min-width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.cat-cart-total {
+  color: var(--gold);
+}
+
+.cart-list {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.cart-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 10px;
+}
+
+.cart-row-info {
+  flex: 1;
+  display: grid;
+  gap: 2px;
+  font-size: 0.9rem;
+}
+
+.cart-row-qty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  font-size: 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.qty-btn:hover {
+  background: var(--bg);
+}
+
+.cart-row-total {
+  min-width: 86px;
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+.cart-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 0.95rem;
+}
+
+.cart-total-row strong {
+  font-size: 1.1rem;
+}
+
 .cat-info {
   padding: 14px 16px 16px;
   display: grid;
