@@ -9,10 +9,8 @@ function resolveClient() {
   const envUrl = import.meta.env.VITE_SUPABASE_URL as string | undefined;
   const envKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined;
   if (envUrl && envKey) return { url: envUrl, key: envKey };
-  const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') return { url: DIRECT_URL, key: DIRECT_KEY };
-  // Em preview/publicação Verdent, usa o proxy same-origin gerenciado pela plataforma.
-  return { url: window.location.origin, key: 'verdent-baas-proxy' };
+  // Chave publishable é config pública — funciona em qualquer hospedagem (Vercel, Verdent, etc.).
+  return { url: DIRECT_URL, key: DIRECT_KEY };
 }
 
 const resolved = resolveClient();
