@@ -855,6 +855,13 @@ textarea.input {
   gap: 18px;
 }
 
+/* Grade do catálogo dentro do sistema — ocupa toda a largura do conteúdo */
+.cat-grid--system {
+  max-width: none;
+  margin: 0 0 20px;
+  padding: 0;
+}
+
 .cat-card {
   background: var(--panel);
   border: 1px solid var(--line);

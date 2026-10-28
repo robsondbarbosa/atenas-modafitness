@@ -11,7 +11,7 @@ import { Produtos } from './pages/Produtos';
 import { Relatorios } from './pages/Relatorios';
 import { Usuarios } from './pages/Usuarios';
 import { NovaVendaPage, VendasPage } from './pages/Vendas';
-import { Catalog } from './pages/Catalog';
+import { Catalog, CatalogoInterno } from './pages/Catalog';
 import { Configuracoes } from './pages/Configuracoes';
 
 const NAV: { group: string; items: { id: string; label: string }[] }[] = [
@@ -47,6 +47,7 @@ const NAV: { group: string; items: { id: string; label: string }[] }[] = [
   {
     group: 'Sistema',
     items: [
+      { id: 'catalogo', label: 'Catálogo digital' },
       { id: 'lucro', label: 'Lucro e venda' },
       { id: 'comissoes', label: 'Comissões' },
       { id: 'etiquetas', label: 'Etiquetas e códigos' },
@@ -60,6 +61,7 @@ const PARTY_IDS: PartyKind[] = ['cliente', 'fornecedor', 'vendedor', 'revendedor
 
 function renderPage(page: string, go: (p: string) => void, etiquetaProduct: string, goEtiquetas: (id: string) => void) {
   if (page === 'dashboard') return <Dashboard go={go} />;
+  if (page === 'catalogo') return <CatalogoInterno />;
   if (page === 'nova-venda') return <NovaVendaPage go={go} />;
   if (page === 'vendas') return <VendasPage go={go} />;
   if (page === 'produtos') return <Produtos onEtiquetas={goEtiquetas} />;
