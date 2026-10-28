@@ -14,11 +14,44 @@ function resolveClient() {
 }
 
 const resolved = resolveClient();
-export const supabase = createClient(resolved.url, resolved.key, {
-  auth: { persistSession: true, autoRefreshToken: true },
-});
+
+const SESSION_TOKEN_KEY = 'atenas_token';
+
+function storedToken(): string | undefined {
+  try {
+    return localStorage.getItem(SESSION_TOKEN_KEY) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function createClientWithToken(token?: string) {
+  return createClient(resolved.url, resolved.key, {
+    auth: { persistSession: true, autoRefreshToken: true },
+    global: token ? { headers: { 'x-session-token': token } } : {},
+  });
+}
+
+let supabase = createClientWithToken(storedToken());
+
+/** Guarda o token da sessão e recria o cliente com o header de autenticação. */
+export function setSessionToken(token: string | null) {
+  try {
+    if (token) localStorage.setItem(SESSION_TOKEN_KEY, token);
+    else localStorage.removeItem(SESSION_TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
+  supabase = createClientWithToken(token ?? undefined);
+}
 
 export const db = {
+  async rpc(name: string, params: Record<string, any> = {}): Promise<any> {
+    const { data, error } = await supabase.rpc(name, params);
+    if (error) throw new Error(error.message);
+    return data;
+  },
+
   async list(
     table: string,
     opts: { eq?: [string, any]; order?: string; asc?: boolean; select?: string } = {},

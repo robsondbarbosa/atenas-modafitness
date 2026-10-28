@@ -31,17 +31,24 @@ function UserForm({ initial, onClose, onSaved }: { initial: AppUser | null; onCl
       setErr('Informe nome e login.');
       return;
     }
-    const patch: Partial<AppUser> = { ...form };
-    if (patch.password && patch.password.length < 4) {
+    const { password, ...patch } = form;
+    if (password && password.length < 4) {
       setErr('Informe uma senha com pelo menos 4 caracteres.');
       return;
     }
-    if (initial && !patch.password) delete patch.password;
     setSaving(true);
     setErr('');
     try {
-      if (initial) await db.update('app_users', initial.id, patch);
-      else await db.insert('app_users', patch);
+      // O hash da senha só pode ser definido no servidor (RPC) — nunca pela tabela.
+      const saved = initial
+        ? await db.update('app_users', initial.id, patch)
+        : await db.insert('app_users', patch);
+      if (password) {
+        await db.rpc('salvar_senha_usuario', {
+          p_user_id: initial ? initial.id : (saved as AppUser).id,
+          p_senha: password,
+        });
+      }
       onSaved();
       onClose();
     } catch (e: any) {

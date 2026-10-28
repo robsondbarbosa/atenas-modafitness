@@ -1,4 +1,4 @@
-import { db } from './db';
+import { db, setSessionToken } from './db';
 
 export interface SessionUser {
   id: string;
@@ -54,21 +54,35 @@ export function getSession(): SessionUser | null {
 }
 
 export async function login(loginValue: string, password: string): Promise<SessionUser> {
-  const rows = await db.list('app_users', { eq: ['login', loginValue.trim()] });
-  const u = rows[0];
-  if (!u || u.password !== password) throw new Error('Login ou senha inválidos.');
-  if (!u.active) throw new Error('Usuário inativo. Procure o administrador.');
+  // Validação no servidor via RPC — a senha nunca sai do banco em texto puro
+  // e o acesso às tabelas exige o token de sessão assinado no servidor.
+  const res = await db.rpc('login_usuario', { p_login: loginValue.trim(), p_senha: password });
+  const payload = typeof res === 'string' ? JSON.parse(res) : res;
+  if (payload?.erro) throw new Error(payload.erro);
+  if (!payload?.token || !payload?.usuario) throw new Error('Resposta inválida do servidor.');
+  const u = payload.usuario;
+  let permissions: string[] = [];
+  if (Array.isArray(u.permissions)) permissions = u.permissions;
+  else if (typeof u.permissions === 'string') {
+    try {
+      permissions = JSON.parse(u.permissions);
+    } catch {
+      permissions = [];
+    }
+  }
   const session: SessionUser = {
     id: u.id,
     name: u.name,
     login: u.login,
     role: u.role,
-    permissions: u.permissions ?? [],
+    permissions,
   };
+  setSessionToken(payload.token);
   localStorage.setItem(SESSION_KEY, JSON.stringify(session));
   return session;
 }
 
 export function logout(): void {
   localStorage.removeItem(SESSION_KEY);
+  setSessionToken(null);
 }
