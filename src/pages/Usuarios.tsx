@@ -10,7 +10,9 @@ const MODULES = [
   { id: 'cadastros', label: 'Cadastros' },
   { id: 'relatorios', label: 'Relatórios' },
   { id: 'etiquetas', label: 'Etiquetas' },
+  { id: 'catalogo', label: 'Catálogo digital' },
   { id: 'usuarios', label: 'Usuários' },
+  { id: 'configuracoes', label: 'Configurações' },
 ];
 
 function UserForm({ initial, onClose, onSaved }: { initial: AppUser | null; onClose: () => void; onSaved: () => void }) {
@@ -29,11 +31,18 @@ function UserForm({ initial, onClose, onSaved }: { initial: AppUser | null; onCl
       setErr('Informe nome e login.');
       return;
     }
+    const patch: Partial<AppUser> = { ...form };
+    if (initial) {
+      if (!patch.password) delete patch.password;
+    } else if (!patch.password || patch.password.length < 4) {
+      setErr('Informe uma senha com pelo menos 4 caracteres.');
+      return;
+    }
     setSaving(true);
     setErr('');
     try {
-      if (initial) await db.update('app_users', initial.id, form);
-      else await db.insert('app_users', form);
+      if (initial) await db.update('app_users', initial.id, patch);
+      else await db.insert('app_users', patch);
       onSaved();
       onClose();
     } catch (e: any) {
@@ -52,6 +61,15 @@ function UserForm({ initial, onClose, onSaved }: { initial: AppUser | null; onCl
         </Field>
         <Field label='Login *'>
           <input className='input' value={form.login ?? ''} onChange={(e) => setForm((f) => ({ ...f, login: e.target.value }))} />
+        </Field>
+        <Field label={initial ? 'Nova senha (vazio = manter)' : 'Senha *'}>
+          <input
+            className='input'
+            type='password'
+            value={form.password ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
+            autoComplete='new-password'
+          />
         </Field>
         <Field label='Perfil'>
           <select className='input' value={form.role ?? 'vendedor'} onChange={(e) => setForm((f) => ({ ...f, role: e.target.value as any }))}>

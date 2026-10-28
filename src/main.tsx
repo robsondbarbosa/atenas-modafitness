@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import './style.css';
+import { canAccess, getSession, logout, SessionUser } from './auth';
 import { PartyKind } from './db';
 import { Depositos, PartyPage } from './pages/Cadastros';
 import { Dashboard } from './pages/Dashboard';
@@ -13,6 +14,7 @@ import { Usuarios } from './pages/Usuarios';
 import { NovaVendaPage, VendasPage } from './pages/Vendas';
 import { Catalog, CatalogoInterno } from './pages/Catalog';
 import { Configuracoes } from './pages/Configuracoes';
+import { Login } from './pages/Login';
 
 const NAV: { group: string; items: { id: string; label: string }[] }[] = [
   { group: '', items: [{ id: 'dashboard', label: 'Dashboard' }] },
@@ -59,12 +61,18 @@ const NAV: { group: string; items: { id: string; label: string }[] }[] = [
 
 const PARTY_IDS: PartyKind[] = ['cliente', 'fornecedor', 'vendedor', 'revendedor', 'transportadora'];
 
-function renderPage(page: string, go: (p: string) => void, etiquetaProduct: string, goEtiquetas: (id: string) => void) {
+function renderPage(
+  page: string,
+  go: (p: string) => void,
+  etiquetaProduct: string,
+  goEtiquetas: (id: string) => void,
+  session: SessionUser,
+) {
   if (page === 'dashboard') return <Dashboard go={go} />;
   if (page === 'catalogo') return <CatalogoInterno />;
   if (page === 'nova-venda') return <NovaVendaPage go={go} />;
   if (page === 'vendas') return <VendasPage go={go} />;
-  if (page === 'produtos') return <Produtos onEtiquetas={goEtiquetas} />;
+  if (page === 'produtos') return <Produtos onEtiquetas={canAccess('etiquetas', session) ? goEtiquetas : undefined} />;
   if (page === 'estoque') return <Estoque />;
   if (page === 'receber') return <Financeiro kind='receber' />;
   if (page === 'pagar') return <Financeiro kind='pagar' />;
@@ -89,6 +97,7 @@ function useHashRoute() {
 
 function App() {
   const hash = useHashRoute();
+  const [session, setSession] = useState<SessionUser | null>(() => getSession());
   const [page, setPage] = useState('dashboard');
   const [menuOpen, setMenuOpen] = useState(false);
   const [etiquetaProduct, setEtiquetaProduct] = useState('');
@@ -110,6 +119,24 @@ function App() {
     return <Catalog />;
   }
 
+  if (!session) {
+    return <Login onLogin={setSession} />;
+  }
+
+  const nav = NAV.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => canAccess(item.id, session)),
+  })).filter((group) => group.items.length > 0);
+
+  const firstAllowed = nav[0]?.items[0]?.id ?? 'dashboard';
+  const current = canAccess(page, session) ? page : firstAllowed;
+
+  const doLogout = () => {
+    logout();
+    setSession(null);
+    setPage('dashboard');
+  };
+
   return (
     <div className='app'>
       <button className='menu-toggle' onClick={() => setMenuOpen((v) => !v)} aria-label='Abrir menu'>
@@ -121,13 +148,13 @@ function App() {
           <span className='sidebar-brand-sub'>Sistema de Gestão</span>
         </div>
         <nav className='sidebar-nav'>
-          {NAV.map((group) => (
+          {nav.map((group) => (
             <div key={group.group || 'main'} className='nav-group'>
               {group.group && <span className='nav-group-label'>{group.group}</span>}
               {group.items.map((item) => (
                 <button
                   key={item.id}
-                  className={`nav-item${page === item.id ? ' nav-item--active' : ''}`}
+                  className={`nav-item${current === item.id ? ' nav-item--active' : ''}`}
                   onClick={() => go(item.id)}
                 >
                   {item.label}
@@ -136,9 +163,15 @@ function App() {
             </div>
           ))}
         </nav>
+        <div className='sidebar-user'>
+          <span className='sidebar-user-name'>{session.name}</span>
+          <button className='sidebar-user-logout' onClick={doLogout}>
+            Sair
+          </button>
+        </div>
       </aside>
       {menuOpen && <div className='sidebar-backdrop' onClick={() => setMenuOpen(false)} />}
-      <main className='content'>{renderPage(page, go, etiquetaProduct, goEtiquetas)}</main>
+      <main className='content'>{renderPage(current, go, etiquetaProduct, goEtiquetas, session)}</main>
     </div>
   );
 }

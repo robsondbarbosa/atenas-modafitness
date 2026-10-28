@@ -161,6 +161,7 @@ export interface AppUser {
   role: 'admin' | 'gerente' | 'vendedor';
   permissions: string[];
   active: boolean;
+  password?: string;
 }
 
 /* ---------- Auxiliares ---------- */
