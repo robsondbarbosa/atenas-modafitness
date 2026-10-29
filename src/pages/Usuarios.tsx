@@ -32,6 +32,10 @@ function UserForm({ initial, onClose, onSaved }: { initial: AppUser | null; onCl
       return;
     }
     const { password, ...patch } = form;
+    if (!initial && !password) {
+      setErr('Informe uma senha para o novo usuário.');
+      return;
+    }
     if (password && password.length < 4) {
       setErr('Informe uma senha com pelo menos 4 caracteres.');
       return;
@@ -39,14 +43,23 @@ function UserForm({ initial, onClose, onSaved }: { initial: AppUser | null; onCl
     setSaving(true);
     setErr('');
     try {
-      // O hash da senha só pode ser definido no servidor (RPC) — nunca pela tabela.
-      const saved = initial
-        ? await db.update('app_users', initial.id, patch)
-        : await db.insert('app_users', patch);
-      if (password) {
-        await db.rpc('salvar_senha_usuario', {
-          p_user_id: initial ? initial.id : (saved as AppUser).id,
+      if (initial) {
+        // Edição: atualiza dados e, se senha informada, chama RPC de hash.
+        // Se o RPC de senha falhar após o update, o usuário ainda pode entrar
+        // com a senha anterior — não há inconsistência crítica.
+        await db.update('app_users', initial.id, patch);
+        if (password) {
+          await db.rpc('salvar_senha_usuario', { p_user_id: initial.id, p_senha: password });
+        }
+      } else {
+        // Criação: RPC atômica — insere o usuário e define o hash em uma única transação.
+        await db.rpc('criar_usuario', {
+          p_name: patch.name,
+          p_login: patch.login,
           p_senha: password,
+          p_role: patch.role ?? 'vendedor',
+          p_permissions: patch.permissions ?? [],
+          p_active: patch.active ?? true,
         });
       }
       onSaved();
